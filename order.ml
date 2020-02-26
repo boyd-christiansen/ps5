@@ -3,18 +3,17 @@
                 Modules, Functors, and Data Structures
  *)
 
-
 (* order -- a type for comparison operation results *)
 type order = Less | Equal | Greater ;;
 
-(* string_compare -- compares two strings returning their order *)
+(* string_compare x y -- compares two strings returning their order *)
 let string_compare (x : string) (y : string) : order =
   let i = String.compare x y in
   if i = 0 then Equal
   else if i < 0 then Less
   else Greater ;;
 
-(* int_compare -- compares two strings returning their order *)
+(* int_compare x y -- compares two strings returning their order *)
 let int_compare (x : int) (y : int) =
   if x = y then Equal
   else if x < y then Less
@@ -33,22 +32,22 @@ sig
      "generate*" functions do, and why we included them in this
      signature. *)
 
-  (* Generate a value of type t *)
+  (* Generate a value of type `t` *)
   val generate: unit -> t
 
-  (* Generate a value of type t that is greater than the argument. *)
+  (* Generate a value of type `t` that is greater than the argument. *)
   val generate_gt: t -> t
 
-  (* Generate a value of type t that is less than the argument. *)
+  (* Generate a value of type `t` that is less than the argument. *)
   val generate_lt: t -> t
 
-  (* Generate a value of type t that is between argument 1 and
-     argument 2.  Returns None if there is no value between argument 1
-     and argument 2. *)
+  (* Generate a value of type `t` that is between argument 1 and
+     argument 2.  Returns `None` if there is no value between argument
+     1 and argument 2. *)
   val generate_between: t -> t -> t option
 end
 
-(* An example implementation of the COMPARABLE signature, where the
+(* An example implementation of the `COMPARABLE` signature, where the
    underlying type is integers. In this example, the value of the
    integer is used for comparisons. *)
 module IntCompare : (COMPARABLE with type t = int) =
@@ -70,11 +69,12 @@ struct
     if higher - lower < 2 then None else Some (higher - 1)
 end
 
-(* Another example implementation for int*string pairs. It only uses
-   the int part of the tuple in comparisons. *)
+(* Another example implementation for `int * string` pairs. It only
+   uses the `int` part of the tuple in comparisons. *)
 module IntStringCompare : (COMPARABLE with type t = int * string) =
 struct
   type t = int * string
+                   
   let compare (p1,_) (p2,_) =
     if p1 < p2 then Less else if p1 > p2 then Greater else Equal
 

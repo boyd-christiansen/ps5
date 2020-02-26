@@ -73,10 +73,10 @@ Here, you'll complete the implementation of the BinSTree
 functor. Unlike a binary search tree you may have seen before, this
 implementation keeps a list with each node in the tree that contains
 each instance of the value inserted into the tree. For example, if the
-integer 3 is inserted into an Int BinSTree 5 times, then there will be
-a node with [3; 3; 3; 3; 3] in the tree, and the node will only be
-removed after 5 deletions on 3 (assuming no further intermediate
-insertions of 3).
+integer `3` is inserted into an `int BinSTree` five times, then there
+will be a node with `[3; 3; 3; 3; 3]` in the tree, and the node will
+only be removed after five deletions of `3` (assuming no further
+intermediate insertions of `3`).
 ......................................................................*)
 
 module BinSTree (C : COMPARABLE)
@@ -89,9 +89,9 @@ module BinSTree (C : COMPARABLE)
     exception Empty
     exception NotFound
     
-    (* Grab the type of the tree from the module C that's passed in.
-       This is the only place you explicitly need to use C.t; you
-       should use elt everywhere else *)
+    (* Grab the type of the tree element from the module C that's
+       passed in.  This is the only place you explicitly need to use
+       C.t; you should use elt everywhere else *)
     type elt = C.t
      
     (* The type for a collection, a binary search tree *)
@@ -104,120 +104,122 @@ module BinSTree (C : COMPARABLE)
     let empty = Leaf
     
     (*..................................................................
-    insert -- Inserts an element x into the tree t.  The left subtree
-    of a given node should only have "smaller" elements than that
-    node, while the right subtree should only have "greater". Remember
-    that "equal" elements should all be stored in a list. *The most
-    recently inserted elements should be at the front of the list so
-    they can be preferentially found and deleted.* (This is important
-    for later use in priority queues.)
+    insert x t -- Inserts an element `x` into the tree `t`.  The left
+    subtree of a given node should only have "smaller" elements than
+    that node, while the right subtree should only have
+    "greater". Remember that "equal" elements should all be stored in
+    a list. *The most recently inserted elements should be at the
+    front of the list so they can be preferentially found and
+    deleted.* (This is important for later use in priority queues.)
     
-    Hint: Use C.compare. See delete for inspiration.
+    Hint: Use `C.compare`. See `delete` for inspiration.
     ..................................................................*)  
     let rec insert (x : elt) (t : tree) : tree =
       failwith "insert not implemented"
 
     (*..................................................................
-    search -- Returns true if the element x is in tree t, else false.
-    Hint: multiple values might compare Equal to x, but that doesn't
-    necessarily mean that x itself is in the tree.
+    search x t -- Returns `true` if the element `x` is in tree `t`,
+    `false` otherwise.  Hint: multiple values might compare `Equal` to
+    `x`, but that doesn't necessarily mean that `x` itself is in the
+    tree.
     ..................................................................*)
     let rec search (x : elt) (t : tree) : bool =
       failwith "search not implemented"
 
-    (* pull_min -- A useful function for removing the node with the
-       minimum value from a binary tree, returning that node and the
-       tree with that node removed.
+    (* pull_min t -- A useful function for removing the node (list of
+       elements) with the minimum value from a binary tree, returning
+       that node and the tree with that node removed.
     
-       The pull_min function is not defined in the signature
+       The `pull_min` function is not defined in the signature
        ORDERED_COLLECTION.  When you're working on a structure that
        implements a signature like ORDERED_COLLECTION, you may write
-       "helper" functions for your implementation (such as pull_min)
-       that are not defined in the signature.
+       auxiliary functions for your implementation (such as
+       `pull_min`) that are not defined in the signature.
     
-       Note, however, that if a function foo *is* defined in a
-       signature BAR, and you attempt to make a structure satisfying
-       the signature BAR, then you *must* define the function foo in
-       your structure.  Otherwise the compiler will complain that your
-       structure does not, in fact, satisfy the signature BAR (but you
-       claim that it does). So, if it's in the signature, it needs to
-       be in the structure. But if it's in the structure, it doesn't
-       necessarily need to show up in the signature. *)
+       Note, however, that if a function `foo` *is* defined in a
+       signature `BAR`, and you attempt to make a structure satisfying
+       the signature `BAR`, then you *must* define the function `foo`
+       in your structure.  Otherwise the compiler will complain that
+       your structure does not, in fact, satisfy the signature `BAR`
+       (but you claim that it does). So, if it's in the signature, it
+       needs to be in the structure. But if it's in the structure, it
+       doesn't necessarily need to show up in the signature. *)
     let rec pull_min (t : tree) : elt list * tree =
       match t with
       | Leaf -> raise Empty
-      | Branch (Leaf, v, r) -> (v, r)
-      | Branch (l, v, r) -> let min, t' = pull_min l in
-                            (min, Branch (t', v, r))
+      | Branch (Leaf, this, right) -> (this, right)
+      | Branch (left, this, right) -> let min, left' = pull_min left in
+                                      (min, Branch (left', this, right))
                 
-    (* delete -- Removes an element from the tree. If multiple
+    (* delete x t -- Removes element `x` from tree `t`. If multiple
        elements are in the list, removes the one that was inserted
-       first. *)
+       *first*. *)
     let rec delete (x : elt) (t : tree) : tree =
       match t with
       | Leaf -> raise NotFound
-      | Branch (l, lst, r) ->
-         (* Reverse the list so that we pop off the last element in the list *)
-         match List.rev lst with
-         | [] -> failwith "Invalid tree: empty list as node"
-         | hd::tl ->
+      | Branch (left, this, right) ->
+         (* Reverse the elements stored at this node so that we pop
+            off the last element in the list *)
+         match List.rev this with
+         | [] -> failwith "delete: empty list as node"
+         | hd :: tl ->
             match C.compare x hd with
-            | Less -> Branch (delete x l, lst, r)
-            | Greater -> Branch (l, lst, delete x r)
+            | Less -> Branch (delete x left, this, right)
+            | Greater -> Branch (left, this, delete x right)
             | Equal ->
                match tl with
-               | _::_ -> Branch (l, List.rev tl, r)
-               (* The list in the node is empty, so we have to
-                  remove the node from the tree. *)
+               | _ :: _ -> Branch (left, List.rev tl, right)
                | [] ->
-                  match l, r with
-                  | Leaf, _ -> r
-                  | _, Leaf -> l
-                  | _ -> let v, r' = pull_min r in Branch (l,v,r')
+                  (* the list in the node is now empty, so we have to
+                     remove the node from the tree. *)
+                  match left, right with
+                  | Leaf, _ -> right
+                  | _, Leaf -> left
+                  | _ -> let right_min, right' = pull_min right in
+                         Branch (left, right_min, right')
     
     (*..................................................................
-    getmin -- Returns the minimum value of the tree t. If
+    getmin t -- Returns the minimum value of the tree `t`. If
     there are multiple minimum values, it should return the one that
     was inserted first (note that, even though the list might look
-    like [3; 3; 3; 3; 3], you should return the *last* 3 in the
+    like `[3; 3; 3; 3; 3]`, you should return the *last* `3` in the
     list. This is because we might pass in a module to this functor
     that defines a type and comparison function where each element in
-    the list *is* distinct, but are Equal from the perspective of the
-    comparison function (like IntStringCompare).
+    the list *is* distinct, but are `Equal` from the perspective of the
+    comparison function (like `IntStringCompare`).
     ..................................................................*)
     let getmin (t : tree) : elt =
       failwith "getmin not implemented"
 
     (*..................................................................
-    getmax -- Returns the maximum value of the tree t. Similarly should
-    return the last element in the matching list. 
+    getmax t -- Returns the maximum value of the tree `t`. Similarly
+    should return the last element in the matching list.
 
-    The exception "Empty", defined within this module, might come
+    The exception `Empty`, defined within this module, might come
     in handy.
     ..................................................................*)  
     let rec getmax (t : tree) : elt =
       failwith "getmax not implemented"
 
-    (* to_string -- Generates a string representation of a binary
-       search tree, useful for testing! *)
-    let to_string (t: tree) = 
+    (* to_string t -- Generates a string representation of a binary
+       search tree `t`, useful for testing! *)
+    let to_string (t : tree) = 
       let list_to_string (lst: 'a list) =
         match lst with 
         | [] -> "[]"
         | [hd] -> "[" ^ (C.to_string hd) ^ "]"
         | hd :: tl -> "[" ^ List.fold_left
-            (fun a b -> a
-            ^ "; "
-            ^ (C.to_string b))
-            (C.to_string hd) tl ^ "]"
-      in
+                              (fun a b -> a
+                                          ^ "; "
+                                          ^ (C.to_string b))
+                              (C.to_string hd) tl ^ "]" in
       let rec to_string' (t: tree) = 
         match t with 
         | Leaf -> "Leaf"
         | Branch (l, m, r) ->
                  "Branch (" ^ (to_string' l) ^ ", "
-                 ^ (list_to_string m) ^ ", " ^ (to_string' r) ^ ")"
-      in to_string' t
+                 ^ (list_to_string m) ^ ", " ^ (to_string' r) ^ ")" in
+      to_string' t
 
     (* Functions for testing the implementation *)
     let test_insert () =
@@ -243,22 +245,21 @@ module BinSTree (C : COMPARABLE)
       let t = insert x empty in
       assert (search x t);
       let order = [ true; false; true; true; true; false; false] in
+      
       let full_tree, values_inserted =
         List.fold_right
           (fun current_order (tree_so_far, values_so_far) ->
            let prev_value =
              match values_so_far with
              | [] -> x
-             | hd :: _ -> hd
-           in
+             | hd :: _ -> hd in
            let value =
              if current_order
              then C.generate_gt prev_value
-             else C.generate_lt prev_value
-           in
-           insert value tree_so_far, value :: values_so_far
-          ) order (t, [])
-      in
+             else C.generate_lt prev_value in
+           insert value tree_so_far, value :: values_so_far)
+          order (t, []) in
+      
       List.iter (fun value -> assert (search value full_tree)) values_inserted
     
     (* None of these tests are particularly exhaustive.  For instance,
@@ -301,17 +302,16 @@ module BinSTree (C : COMPARABLE)
   end
 
 (* Here is how you would define an integer binary search tree using
-the BinSTree functor, which expects a module to be passed in as an
-argument.  You should write tests using the IntTree module (or you can
-give the module a different type), and you should use this call to a
-functor as an example for how to test modules further down in the
+the `BinSTree` functor, which expects a module to be passed in as an
+argument.  You should write tests using the `IntTree` module (or you
+can give the module a different type), and you should use this call to
+a functor as an example for how to test modules further down in the
 pset. *)
     
 module IntTree = BinSTree(IntCompare)
        
 (* Please read the entirety of "tests.ml" for an explanation of how
 testing works. *)
-
                          
 (*======================================================================
 Reflection on the problem set
