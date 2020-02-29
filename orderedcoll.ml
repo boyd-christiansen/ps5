@@ -115,7 +115,13 @@ module BinSTree (C : COMPARABLE)
     Hint: Use `C.compare`. See `delete` for inspiration.
     ..................................................................*)  
     let rec insert (x : elt) (t : tree) : tree =
-      failwith "insert not implemented"
+      match t with
+      | Leaf -> Branch Leaf, [x], Leaf
+      | Branch (left, hd :: tl, right) -> 
+        match C.compare x h with
+        | Less -> Branch insert x left, hd :: tl, right
+        | Greater -> Branch left, hd :: tl, insert x right
+        | Equal -> Branch left, (x :: hd :: tl) , right
 
     (*..................................................................
     search x t -- Returns `true` if the element `x` is in tree `t`,
