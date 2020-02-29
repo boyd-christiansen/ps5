@@ -77,17 +77,24 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
 
     type queue = elt list
 
-    let empty : queue =
-      failwith "ListQueue empty not implemented"
+    let empty : queue = []
 
     let is_empty (q : queue) : bool =
-      failwith "ListQueue is_empty not implemented"
+      q = []
 
     let add (e : elt) (q : queue) : queue =
-      failwith "ListQueue add not implemented"
+      e :: q
 
     let take (q : queue) : elt * queue =
-      failwith "ListQueue take not implemented"
+      if is_empty q then raise QueueEmpty else
+        match q with
+        List.fold_left (
+        fun acc x -> 
+          match C.compare acc x with
+          | Less -> acc
+          | Greater -> x
+          | Equal -> acc
+      ) 
 
     let run_tests () =
       failwith "ListQueue run_tests not implemented"

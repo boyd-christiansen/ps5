@@ -18,7 +18,46 @@ sig
   (* The type of an element in the collection *)
   type elt
 
+  (* What this type actually looks like is left up to the particularmodule type ORDERED_COLLECTION =
+sig
+  exception Empty
+  exception NotFound
+
+  (* The type of an element in the collection *)
+  type elt
+
   (* What this type actually looks like is left up to the particular
+     implementation (the struct) *)
+  type collection
+
+  (* An empty collection *)
+  val empty : collection
+
+  (* Search a collection for the given value. *)
+  val search : elt -> collection -> bool
+
+  (* Insert elt into collection *)
+  val insert : elt -> collection -> collection
+
+  (* Delete the given value from a binary collection.
+     May raise NotFound exception. *)
+  val delete : elt -> collection -> collection
+
+  (* Return the minimum value of a binary collection.
+     May raise Empty exception *)
+  val getmin : collection -> elt
+
+  (* Return the maximum value of a binary collection.
+     May raise Empty exception *)
+  val getmax : collection -> elt
+
+  (* Return a string of the given collection. *)
+  val to_string : collection -> string
+ 
+  (* Run invariant checks on the implementation of this binary collection.
+     May raise Assert_failure exception *)
+  val run_tests : unit -> unit
+end
      implementation (the struct) *)
   type collection
 
@@ -116,12 +155,13 @@ module BinSTree (C : COMPARABLE)
     ..................................................................*)  
     let rec insert (x : elt) (t : tree) : tree =
       match t with
-      | Leaf -> Branch Leaf, [x], Leaf
+      | Leaf -> Branch (Leaf, [x], Leaf)
+      | Branch (_left, [], _right) -> Branch (Leaf, [x], Leaf)
       | Branch (left, hd :: tl, right) -> 
-        match C.compare x h with
-        | Less -> Branch insert x left, hd :: tl, right
-        | Greater -> Branch left, hd :: tl, insert x right
-        | Equal -> Branch left, (x :: hd :: tl) , right
+        match C.compare x hd with
+        | Less -> Branch (insert x left, hd :: tl, right)
+        | Greater -> Branch (left, hd :: tl, insert x right)
+        | Equal -> Branch (left, (x :: hd :: tl) , right)
 
     (*..................................................................
     search x t -- Returns `true` if the element `x` is in tree `t`,
@@ -130,7 +170,14 @@ module BinSTree (C : COMPARABLE)
     tree.
     ..................................................................*)
     let rec search (x : elt) (t : tree) : bool =
-      failwith "search not implemented"
+      match t with
+      | Leaf -> false
+      | Branch (_left, [], _right) -> false
+      | Branch (left, hd :: tl, right) -> 
+        match C.compare x hd with
+        | Less -> search x left
+        | Greater -> search x right
+        | Equal -> true
 
     (* pull_min t -- A useful function for removing the node (list of
        elements) with the minimum value from a binary tree, returning
@@ -194,8 +241,11 @@ module BinSTree (C : COMPARABLE)
     the list *is* distinct, but are `Equal` from the perspective of the
     comparison function (like `IntStringCompare`).
     ..................................................................*)
-    let getmin (t : tree) : elt =
-      failwith "getmin not implemented"
+    let rec getmin (t : tree) : elt =
+      match t with
+      | Leaf -> raise Empty
+      | Branch (Leaf, hd :: tl, _right) -> hd
+      | Branch (left, _lst, _right) -> getmin left
 
     (*..................................................................
     getmax t -- Returns the maximum value of the tree `t`. Similarly
@@ -205,7 +255,10 @@ module BinSTree (C : COMPARABLE)
     in handy.
     ..................................................................*)  
     let rec getmax (t : tree) : elt =
-      failwith "getmax not implemented"
+      match t with
+      | Leaf -> raise Empty
+      | Branch (_left, hd :: tl, Leaf) -> hd
+      | Branch (_left, _lst, right) -> getmax right
 
     (* to_string t -- Generates a string representation of a binary
        search tree `t`, useful for testing! *)
