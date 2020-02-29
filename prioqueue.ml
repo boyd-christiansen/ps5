@@ -88,13 +88,15 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
     let take (q : queue) : elt * queue =
       if is_empty q then raise QueueEmpty else
         match q with
-        List.fold_left (
-        fun acc x -> 
-          match C.compare acc x with
-          | Less -> acc
-          | Greater -> x
-          | Equal -> acc
-      ) 
+        | [a] -> a
+        | h :: t ->
+          List.fold_left (
+          fun acc x -> 
+            match C.compare acc x with
+            | Less -> acc
+            | Greater -> x
+            | Equal -> acc
+          ) h t
 
     let run_tests () =
       failwith "ListQueue run_tests not implemented"
