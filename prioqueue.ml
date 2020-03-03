@@ -42,7 +42,7 @@ sig
   val add : elt -> queue -> queue
 
   (* Returns a pair of the highest priority element in the argument
-     queue and the queue with that element removed. In case there is
+     queue and the quue with that element removed. In case there is
      more than one element with the same priority (that is, the
      elements compare `Equal`), returns the one that was added
      first. Can raise the `QueueEmpty` exception. *)
@@ -83,20 +83,30 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
       q = []
 
     let add (e : elt) (q : queue) : queue =
-      e :: q
+      let rec accumulate (e : elt) (q : queue) (acc : queue) : queue =
+        match q with
+        | [] -> acc @ [e]
+        | h :: t -> if C.compare h e = Equal then acc @ (e :: h :: t) else
+            accumulate e t (h :: acc)
+      in accumulate e q []
+
+    let rec ret (q : queue) (lose : elt): queue =
+      match List.rev q with
+      | [] -> raise QueueEmpty
+      | hd::tl -> if C.compare hd lose = Equal then tl else hd::(ret tl lose)
 
     let take (q : queue) : elt * queue =
-      if is_empty q then raise QueueEmpty else
-        match q with
-        | [a] -> a
-        | h :: t ->
-          List.fold_left (
-          fun acc x -> 
-            match C.compare acc x with
-            | Less -> acc
-            | Greater -> x
-            | Equal -> acc
-          ) h t
+      match q with
+      | [] -> raise QueueEmpty
+      | [a] -> a, []
+      | h :: t ->
+        let least = List.fold_left (
+        fun acc x ->
+          match C.compare acc x with
+          | Less -> acc
+          | Greater -> x
+          | Equal -> x
+      ) h t in least, List.rev (ret q least)
 
     let run_tests () =
       failwith "ListQueue run_tests not implemented"
@@ -128,7 +138,7 @@ compiles cleanly.
 ......................................................................*)
 
 (* You'll want to uncomment this before working on this section! *)
-(*
+
 module TreeQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
   struct
     exception QueueEmpty
@@ -138,9 +148,29 @@ module TreeQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
     module T = (BinSTree(C) : (ORDERED_COLLECTION with type elt = C.t))
 
     (* Implement the remainder of the module. *)
+    type elt = T.elt
 
+    type queue = T.collection
+
+    let empty : queue = T.empty
+
+    let is_empty (q : queue) : bool =
+      q = empty
+
+    let add (e : elt) (q : queue) : queue =
+      T.insert e q
+
+    let take (q : queue) : elt * queue =
+      let min_val = T.getmin q in
+      min_val, T.delete min_val q
+
+    let run_tests () =
+      failwith "ListQueue run_tests not implemented"
+
+    (* IMPORTANT: Don't change the implementation of to_string. *)
+    let to_string (q: queue) : string =
+      T.to_string q
   end
- *)
 
 (*......................................................................
 Problem 4: Implementing BinaryHeap
@@ -176,7 +206,7 @@ tree, the tree may intermittently not satisfy the order invariant. If
 so, you *must* fix the tree before returning it to the user.  Fill in
 the rest of the module below!
 ......................................................................*)
-   
+
 module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
   struct
 
@@ -233,7 +263,7 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
 
     (* add e q -- Adds element `e` to the queue `q` *)
     let add (e : elt) (q : queue) : queue =
-      
+
       (* Given a tree, where `e` will be inserted is deterministic based
          on the invariants. If we encounter a node in the tree where
          its value is greater than the element being inserted, then we
@@ -272,7 +302,7 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
            | Greater -> TwoBranch (Even, e1, t1, add_to_tree e t2)
            | Less -> TwoBranch (Even, e, t1, add_to_tree e1 t2)
       in
-      
+
       (* If the queue is empty, then `e` is the only Leaf in the tree.
          Else, insert it into the proper location in the pre-existing
          tree *)
@@ -463,7 +493,7 @@ how you performed the measurements below.  Be convincing when
 establishing the algorithmic complexity of each sort.  See the CS51
 and Sys modules for functions related to keeping track of time
 ......................................................................*)
-                         
+
 (*======================================================================
 Reflection on the problem set
 
