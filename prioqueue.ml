@@ -318,7 +318,6 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
       | OneBranch (el, brv)-> OneBranch (e, brv)
       | TwoBranch (eo, _, t1, t2) -> TwoBranch (eo, e, t1, t2)
 
-    (*TODO: Three if statements finding mins, use compare and not <>=*)
     let rec fix (t : tree) : tree =
       match t with
       | Leaf el -> Leaf el
@@ -327,21 +326,14 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
         else OneBranch (el, brv)
       | TwoBranch (eo, el, t1, t2) ->
         let b1, b2 = (get_top t1), (get_top t2) in
-        if el > b1 && el > b2
-        then
-          (if b1 > b2
-           then fix (TwoBranch (eo, b2, t1, fix (rep_tval t2 el)))
-           else fix (TwoBranch (eo, b1, fix (rep_tval t1 el), t2)))
+        if C.compare b1 el = Less &&
+           (C.compare b1 b2 = Equal || C.compare b1 b2 = Less)
+        then fix (TwoBranch (eo, b1, fix (rep_tval t1 el), t2))
         else
-          if el > b1
-          then
-            fix (TwoBranch (eo, b1, fix (rep_tval t1 el), t2))
+          if C.compare b2 b1 = Less && C.compare b2 el = Less
+          then fix (TwoBranch (eo, b2, t1, fix (rep_tval t2 el)))
           else
-            if el > b2
-            then
-              fix (TwoBranch (eo, b2, t1, fix (rep_tval t2 el)))
-            else
-              TwoBranch (eo, el, t1, t2)
+            TwoBranch (eo, el, t1, t2)
 
 
     let extract_tree (q : queue) : tree =
@@ -364,7 +356,8 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
     in the middle of the tree, but there is always *some* value
     brought down into a new node at the bottom of the tree. *This* is
     the node that we want you to return.
-    ..................................................................*)
+      ..................................................................*)
+    (*TODO: navigate down the tree based on if it is even or odd - then arrive at the end and return*)
     let get_last (t : tree) : elt * queue =
       failwith "BinaryHeap get_last not implemented"
 
@@ -396,8 +389,11 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
           | Empty -> (e, Tree (fix (OneBranch (last, get_top t1))))
           | Tree t2' -> (e, Tree (fix (TwoBranch (Odd, last, t1, t2')))))
        (* Implement the odd case! *)
-        | TwoBranch (Odd, _e, _t1, _t2) ->
-           failwith "BinaryHeap take incomplete"
+      | TwoBranch (Odd, e, t1, t2) ->
+        let (last, q1') = get_last t1 in
+        (match q1' with
+         | Empty -> raise QueueEmpty
+         | Tree t1' -> (e, Tree (fix (TwoBranch (Even, last, t1', t2)))))
 
     let run_tests () = failwith "BinaryHeap run_tests not implemented"
   end
