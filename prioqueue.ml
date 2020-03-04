@@ -82,6 +82,7 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
     let is_empty (q : queue) : bool =
       q = []
 
+    (*TODO: Could we just do this with a fold?*)
     let add (e : elt) (q : queue) : queue =
       let rec accumulate (e : elt) (q : queue) (acc : queue) : queue =
         match q with
@@ -90,6 +91,7 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
             accumulate e t (h :: acc)
       in accumulate e q []
 
+    (*
     let rec ret (q : queue) (lose : elt): queue =
       match List.rev q with
       | [] -> raise QueueEmpty
@@ -107,6 +109,12 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
           | Greater -> x
           | Equal -> x
       ) h t in least, List.rev (ret q least)
+      *)
+    let take (q : queue) : elt * queue =
+      if not (is_empty q)
+      then let q = List.rev q
+        in (List.hd q, List.rev (List.tl q))
+      else raise QueueEmpty
 
     let run_tests () =
       failwith "ListQueue run_tests not implemented"
