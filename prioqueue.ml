@@ -357,9 +357,19 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
     brought down into a new node at the bottom of the tree. *This* is
     the node that we want you to return.
       ..................................................................*)
-    (*TODO: navigate down the tree based on if it is even or odd - then arrive at the end and return*)
-    let get_last (t : tree) : elt * queue =
-      failwith "BinaryHeap get_last not implemented"
+(*TODO: navigate down the tree based on if it is even or odd -
+  then arrive at the end and return*)
+    let rec get_last (t : tree) : elt * queue =
+      match t with
+      | Leaf el -> el, Empty
+      | OneBranch (el, brv) -> brv, Tree (Leaf el)
+      | TwoBranch (Even, el, t1, t2) ->
+        let last, path = (get_last t2) in
+        last, Tree ( TwoBranch (Odd, el, t1, extract_tree path))
+      | TwoBranch (Odd, el, t1, t2) ->
+        let last, path = (get_last t1) in
+        last, Tree (TwoBranch (Even, el, extract_tree path, t2))
+
 
     (*..................................................................
     take q -- Returns the hgiest priority element from `q` and the
