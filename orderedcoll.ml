@@ -202,7 +202,7 @@ module BinSTree (C : COMPARABLE)
     the list *is* distinct, but are `Equal` from the perspective of the
     comparison function (like `IntStringCompare`).
       ..................................................................*)
-    let rec getmin (t : tree) : elt =
+    let getmin (t : tree) : elt =
       let vl, _ = pull_min t in
       List.hd (List.rev (vl))
 
@@ -344,9 +344,7 @@ minutes) this problem set (in total, not just this file) took you to
 complete.
 ......................................................................*)
 
-let minutes_spent_on_pset () : int =
-  (*TODO: Answer*)
-  failwith "time estimate not provided" ;;
+let minutes_spent_on_pset () : int = 600 ;;
 
 (*......................................................................
 It's worth reflecting on the work you did on this problem set, where
@@ -357,4 +355,10 @@ string below.
 ......................................................................*)
 (*TODO: Answer*)
 let reflection () : string =
-  "...your reflections here..." ;;
+  "Grasping some of the concepts illustrated in the pset in regards to functors \
+   and modules was a little bit difficult. Good communication bewteen partners \
+   and going to office hours was key to overcoming these issues. Robust testing \
+   also proved to be a huge boon on this Pset, discovering several issues as we \
+   worked through our tests. The testing format was an adjustment, however, but \
+   a closer reading of the test.ml file would have helped us to overcome this
+sooner." ;;

@@ -409,6 +409,7 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
         let b1, b2 = (get_top t1), (get_top t2) in
         if C.compare b1 el = Less &&
            (C.compare b1 b2 = Equal || C.compare b1 b2 = Less)
+        (*NOTE: Second fix called in case of malformed initial trees*)
         then fix (TwoBranch (eo, b1, fix (rep_tval t1 el), t2))
         else
           if C.compare b2 b1 = Less && C.compare b2 el = Less
@@ -516,20 +517,30 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
       let x = C.generate () in
       let nx = C.generate_lt x in
       let x2 = C.generate_gt x in
-      assert (TwoBranch (Even, x2, Leaf x, Leaf x) =
+      assert (fix (TwoBranch (Even, x2, Leaf x, Leaf x)) =
               TwoBranch (Even, x, Leaf x2, Leaf x)); (*equal b val, greater root*)
-      assert (TwoBranch (Even, x2, Leaf x, Leaf nx) =
+      assert (fix (TwoBranch (Even, x2, Leaf x, Leaf nx)) =
               TwoBranch (Even, nx, Leaf x, Leaf x2)); (*disparate b val both less root*)
-      assert (TwoBranch (Even, x2, Leaf x, Leaf nx) =
-              TwoBranch (Even, nx, Leaf x, Leaf x2))
-      (*
-        "only one b less than root"
-        "all equal"
+      assert (fix (TwoBranch (Even, x, Leaf nx, Leaf x2)) =
+              TwoBranch (Even, nx, Leaf x, Leaf x2)); (*only one b less than root*)
+      (*TODO: Think about if this test makes sense or if other comparitors are needed*)
+      assert (fix (TwoBranch (Even, x, Leaf x, Leaf x)) =
+              TwoBranch (Even, x, Leaf x, Leaf x)) (*all equal*)
     let fix_Recursion () =
-      let
-    *)
-    (* get_last
-    take*)
+      let x = C.generate () in
+      let x2 = C.generate_gt x in
+      let x3 = C.generate_gt x2 in
+      let x4 = C.generate_gt x3 in
+      assert (fix (TwoBranch (Odd, x4, Leaf x3, OneBranch (x, x2))) =
+              TwoBranch (Odd, x, Leaf x3, OneBranch (x2, x4)))
+    let test_take_odd () =
+      let x = C.generate () in
+      let x2 = C.generate_gt x in
+      let x3 = C.generate_gt x2 in
+      let x4 = C.generate_gt x3 in
+      assert (take (Tree (TwoBranch (Odd, x, OneBranch (x2, x4), Leaf x3))) =
+              (x, Tree (TwoBranch (Even, x2, (Leaf x4), (Leaf x3)))))
+
     let run_tests () =
       test_get_top_Leaf ();
       test_get_top_OneBranch ();
@@ -537,6 +548,9 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
       test_get_top_TwoBranch_Odd ();
       fix_leaf ();
       fix_OneBranch ();
+      fix_TwoBranch ();
+      fix_Recursion ();
+      test_take_odd ();
       ()
   end
 
