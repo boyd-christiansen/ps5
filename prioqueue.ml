@@ -87,8 +87,8 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
       let rec accumulate (e : elt) (q : queue) (acc : queue) : queue =
         match q with
         | [] -> acc @ [e]
-        | h :: t -> if C.compare h e = Equal then acc @ (e :: h :: t) else
-            accumulate e t (h :: acc)
+        | h :: t -> if C.compare h e <> Less then acc @ (e :: h :: t) else
+            accumulate e t (acc @ [h])
       in accumulate e q []
 
     let take (q : queue) : elt * queue =
@@ -96,9 +96,6 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
       then let q = List.rev q
         in (List.hd q, List.rev (List.tl q))
       else raise QueueEmpty
-
-    let run_tests () =
-      failwith "ListQueue run_tests not implemented"
 
     (* IMPORTANT: Don't change the implementation of to_string. *)
     let to_string (q: queue) : string =
@@ -109,6 +106,55 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
         | hd :: tl -> (C.to_string hd) ^ ";" ^ (to_string' tl)
       in
       let qs = to_string' q in "[" ^ qs ^ "]"
+
+    (*TESTS*)
+    let test_empty () =
+      assert (empty = []);
+      assert (empty <> [C.generate ()])
+    let test_is_empty () =
+      assert(is_empty empty);
+      assert (not (is_empty [C.generate ()]))
+    let test_add_single () =
+      let qu = empty in
+      let x = C.generate () in
+      assert (add x qu = [x])
+    let test_add_ordered_large () =
+      let x = C.generate () in
+      let x2 = C.generate_gt x in
+      let x3 = C.generate_gt x2 in
+      let x4 = C.generate_gt x3 in
+      let fq = (add x4 (add x3 (add x2 (add x empty)))) in
+      Printf.printf "%s" (to_string fq);
+      assert (fq = [x; x2; x3; x4])
+    let test_add_ordered_small () =
+      let x = C.generate () in
+      let x2 = C.generate_lt x in
+      let x3 = C.generate_lt x2 in
+      let x4 = C.generate_lt x3 in
+      let fq = (add x4 (add x3 (add x2 (add x empty)))) in
+      assert (fq = [x4; x3; x2; x])
+    let test_add_unordered () =
+      let x = C.generate () in
+      let xn1 = C.generate_lt x in
+      let xn2 = C.generate_lt xn1 in
+      let x2 = C.generate_gt x in
+      let x3 = C.generate_gt x2 in
+      let fq = add x3 (add xn1 (add x2 (add xn2 (add x empty)))) in
+      assert (fq = [xn2; xn1; x; x2; x3])
+    (*let test_take () =
+      assert ()*)
+
+
+    let run_tests () =
+      test_empty ();
+      test_is_empty ();
+      test_add_single ();
+      test_add_ordered_large ();
+      test_add_ordered_small ();
+      test_add_unordered ();
+      ()
+
+
   end
 
 (*......................................................................
