@@ -129,16 +129,17 @@ module BinSTree (C : COMPARABLE)
     `false` otherwise.  Hint: multiple values might compare `Equal` to
     `x`, but that doesn't necessarily mean that `x` itself is in the
     tree.
-    ..................................................................*)
+      ..................................................................*)
+    (*TODO: List.mem - check implementation*)
     let rec search (x : elt) (t : tree) : bool =
       match t with
       | Leaf -> false
       | Branch (_left, [], _right) -> raise Empty
-      | Branch (left, hd :: _tl, right) ->
+      | Branch (left, hd :: tl, right) ->
         match C.compare x hd with
         | Less -> search x left
         | Greater -> search x right
-        | Equal -> true
+        | Equal -> List.mem x (hd::tl)
 
     (* pull_min t -- A useful function for removing the node (list of
        elements) with the minimum value from a binary tree, returning
@@ -205,7 +206,6 @@ module BinSTree (C : COMPARABLE)
     let rec getmin (t : tree) : elt =
       let vl, _ = pull_min t in
       List.hd (List.rev (vl))
-
 
     (*..................................................................
     getmax t -- Returns the maximum value of the tree `t`. Similarly

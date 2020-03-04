@@ -91,25 +91,6 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
             accumulate e t (h :: acc)
       in accumulate e q []
 
-    (*
-    let rec ret (q : queue) (lose : elt): queue =
-      match List.rev q with
-      | [] -> raise QueueEmpty
-      | hd::tl -> if C.compare hd lose = Equal then tl else hd::(ret tl lose)
-
-    let take (q : queue) : elt * queue =
-      match q with
-      | [] -> raise QueueEmpty
-      | [a] -> a, []
-      | h :: t ->
-        let least = List.fold_left (
-        fun acc x ->
-          match C.compare acc x with
-          | Less -> acc
-          | Greater -> x
-          | Equal -> x
-      ) h t in least, List.rev (ret q least)
-      *)
     let take (q : queue) : elt * queue =
       if not (is_empty q)
       then let q = List.rev q
@@ -323,7 +304,7 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
     single pattern match)
     ..................................................................*)
     let get_top (t : tree) : elt =
-      failwith "BinaryHeap get_top not implemented"
+      match t with | Leaf el | OneBranch (el, _) | TwoBranch (_, el, _, _) -> el
 
     (*..................................................................
     fix t -- Fixes trees whose top node is greater than its
@@ -331,8 +312,37 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
     greater than its children, then it (recursively) fixes this
     tree too. Resulting tree satisfies the strong invariant.
     ..................................................................*)
-    let fix (t : tree) : tree =
-      failwith "BinaryHeap fix not implemented"
+    let rep_tval (t : tree) (e : elt) : tree =
+      match t with
+      | Leaf _ -> Leaf e
+      | OneBranch (el, brv)-> OneBranch (e, brv)
+      | TwoBranch (eo, _, t1, t2) -> TwoBranch (eo, e, t1, t2)
+
+    (*TODO: Three if statements finding mins, use compare and not <>=*)
+    let rec fix (t : tree) : tree =
+      match t with
+      | Leaf el -> Leaf el
+      | OneBranch (el, brv) -> if el > brv
+        then OneBranch (brv, el)
+        else OneBranch (el, brv)
+      | TwoBranch (eo, el, t1, t2) ->
+        let b1, b2 = (get_top t1), (get_top t2) in
+        if el > b1 && el > b2
+        then
+          (if b1 > b2
+           then fix (TwoBranch (eo, b2, t1, fix (rep_tval t2 el)))
+           else fix (TwoBranch (eo, b1, fix (rep_tval t1 el), t2)))
+        else
+          if el > b1
+          then
+            fix (TwoBranch (eo, b1, fix (rep_tval t1 el), t2))
+          else
+            if el > b2
+            then
+              fix (TwoBranch (eo, b2, t1, fix (rep_tval t2 el)))
+            else
+              TwoBranch (eo, el, t1, t2)
+
 
     let extract_tree (q : queue) : tree =
       match q with
@@ -360,7 +370,7 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
 
     (*..................................................................
     take q -- Returns the hgiest priority element from `q` and the
-    queue that ersults from deleting it. Implements the algorithm
+    queue that results from deleting it. Implements the algorithm
     described in the writeup. You must finish this implementation, as
     well as the implementations of get_last and fix, which take uses.
     ..................................................................*)
@@ -385,9 +395,9 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
              just a OneBranch *)
           | Empty -> (e, Tree (fix (OneBranch (last, get_top t1))))
           | Tree t2' -> (e, Tree (fix (TwoBranch (Odd, last, t1, t2')))))
-         (* Implement the odd case! *)
-          | TwoBranch (Odd, _e, _t1, _t2) ->
-             failwith "BinaryHeap take incomplete"
+       (* Implement the odd case! *)
+        | TwoBranch (Odd, _e, _t1, _t2) ->
+           failwith "BinaryHeap take incomplete"
 
     let run_tests () = failwith "BinaryHeap run_tests not implemented"
   end
