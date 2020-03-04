@@ -130,7 +130,6 @@ module BinSTree (C : COMPARABLE)
     `x`, but that doesn't necessarily mean that `x` itself is in the
     tree.
       ..................................................................*)
-    (*TODO: List.mem - check implementation*)
     let rec search (x : elt) (t : tree) : bool =
       match t with
       | Leaf -> false

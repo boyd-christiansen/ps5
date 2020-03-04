@@ -88,8 +88,8 @@ module IntTreeQueue = (TreeQueue(IntCompare) :
                          PRIOQUEUE with type elt = IntCompare.t)
 
 let _ = IntListQueue.run_tests () ;;
-let _ = IntHeapQueue.run_tests () ;;
 let _ = IntTreeQueue.run_tests () ;;
+let _ = IntHeapQueue.run_tests () ;;
 
 (*......................................................................
 REQUIRED TESTING:

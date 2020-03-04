@@ -112,15 +112,18 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
     let test_empty () =
       assert (empty = []);
       assert (empty <> [C.generate ()])
+
     let test_is_empty () =
       assert(is_empty empty);
       assert (not (is_empty [C.generate ()]))
+
     let test_add_take_single () =
       let qu = empty in
       let x = C.generate () in
       let fq = add x qu in
       assert (fq = [x]);
       assert (take fq = (x, []))
+
     let test_add_take_ordered_large () =
       let x = C.generate () in
       let x2 = C.generate_gt x in
@@ -129,6 +132,7 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
       let fq = (add x4 (add x3 (add x2 (add x empty)))) in
       assert (fq = [x; x2; x3; x4]);
       assert (take fq = (x4, [x; x2; x3]))
+
     let test_add_take_ordered_small () =
       let x = C.generate () in
       let x2 = C.generate_lt x in
@@ -137,6 +141,7 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
       let fq = (add x4 (add x3 (add x2 (add x empty)))) in
       assert (fq = [x4; x3; x2; x]);
       assert (take fq = (x, [x4; x3; x2]))
+
     let test_add_take_unordered () =
       let x = C.generate () in
       let xn1 = C.generate_lt x in
@@ -198,8 +203,39 @@ module TreeQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
       let min_val = T.getmin q in
       min_val, T.delete min_val q
 
+    let test_empty () =
+      assert (empty = T.empty);
+      assert (empty <> T.insert (C.generate ()) T.empty)
+
+    let test_is_empty () =
+      assert (is_empty T.empty);
+      assert (not (is_empty (T.insert (C.generate ()) T.empty)))
+
+    let test_add () =
+      let x = C.generate () in
+      let t = add x empty in
+      assert (t = (T.insert x T.empty));
+      let t = add x t in
+      assert (t = (T.insert x (T.insert x T.empty)));
+      let y = C.generate () in
+      let t = add y t in
+      assert (t = (T.insert y (T.insert x (T.insert x T.empty))))
+
+    let test_take () =
+      let x = C.generate () in
+      let y = C.generate_lt x in
+      let t = add y (add x (add x empty)) in
+      assert (take t = (y, add x (add x empty)));
+      let z = C.generate_lt y in
+      let t = add z (add z t) in
+      assert (take t = (z, add z (add y (add x (add x empty)))))
+
     let run_tests () =
-      failwith "ListQueue run_tests not implemented"
+      test_empty () ;
+      test_is_empty () ;
+      test_add () ;
+      test_take () ;
+      ()
 
     (* IMPORTANT: Don't change the implementation of to_string. *)
     let to_string (q: queue) : string =
@@ -448,7 +484,60 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
          | Empty -> raise QueueEmpty
          | Tree t1' -> (e, Tree (fix (TwoBranch (Even, last, t1', t2)))))
 
-    let run_tests () = failwith "BinaryHeap run_tests not implemented"
+    (*TESTS*)
+    (*QUESTION: Do tests have to be written with compare?*)
+    let test_get_top_Leaf () =
+      let x = C.generate () in
+      assert (get_top (Leaf x) = x)
+    let test_get_top_OneBranch () =
+      let x = C.generate () in
+      let x2 = C.generate_gt x in
+      assert (get_top (OneBranch (x, x2)) = x)
+    let test_get_top_TwoBranch_Even () =
+      let x = C.generate () in
+      let x2 = C.generate_gt x in
+      let x3 = C.generate_gt x2 in
+      assert (get_top (TwoBranch (Even, x, Leaf x2, Leaf x3)) = x)
+    let test_get_top_TwoBranch_Odd () =
+      let x = C.generate () in
+      let x2 = C.generate_gt x in
+      let x3 = C.generate_gt x2 in
+      let x4 = C.generate_gt x3 in
+      assert (get_top (TwoBranch (Even, x, Leaf x2, OneBranch (x3, x4))) = x)
+    let fix_leaf () =
+      let x = C.generate () in
+      assert (Leaf x = Leaf x)
+    let fix_OneBranch () =
+      let x = C.generate () in
+      let x2 = C.generate_gt x in
+      assert (fix (OneBranch (x, x2)) = OneBranch (x, x2));
+      assert (fix (OneBranch (x2, x)) = OneBranch (x, x2))
+    let fix_TwoBranch () =
+      let x = C.generate () in
+      let nx = C.generate_lt x in
+      let x2 = C.generate_gt x in
+      assert (TwoBranch (Even, x2, Leaf x, Leaf x) =
+              TwoBranch (Even, x, Leaf x2, Leaf x)); (*equal b val, greater root*)
+      assert (TwoBranch (Even, x2, Leaf x, Leaf nx) =
+              TwoBranch (Even, nx, Leaf x, Leaf x2)); (*disparate b val both less root*)
+      assert (TwoBranch (Even, x2, Leaf x, Leaf nx) =
+              TwoBranch (Even, nx, Leaf x, Leaf x2))
+      (*
+        "only one b less than root"
+        "all equal"
+    let fix_Recursion () =
+      let
+    *)
+    (* get_last
+    take*)
+    let run_tests () =
+      test_get_top_Leaf ();
+      test_get_top_OneBranch ();
+      test_get_top_TwoBranch_Even ();
+      test_get_top_TwoBranch_Odd ();
+      fix_leaf ();
+      fix_OneBranch ();
+      ()
   end
 
 (*......................................................................
