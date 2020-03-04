@@ -107,53 +107,54 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
       in
       let qs = to_string' q in "[" ^ qs ^ "]"
 
-    (*TESTS*)
+
+    (*TESTS - Printf.printf "%s" (to_string fq);*)
     let test_empty () =
       assert (empty = []);
       assert (empty <> [C.generate ()])
     let test_is_empty () =
       assert(is_empty empty);
       assert (not (is_empty [C.generate ()]))
-    let test_add_single () =
+    let test_add_take_single () =
       let qu = empty in
       let x = C.generate () in
-      assert (add x qu = [x])
-    let test_add_ordered_large () =
+      let fq = add x qu in
+      assert (fq = [x]);
+      assert (take fq = (x, []))
+    let test_add_take_ordered_large () =
       let x = C.generate () in
       let x2 = C.generate_gt x in
       let x3 = C.generate_gt x2 in
       let x4 = C.generate_gt x3 in
       let fq = (add x4 (add x3 (add x2 (add x empty)))) in
-      Printf.printf "%s" (to_string fq);
-      assert (fq = [x; x2; x3; x4])
-    let test_add_ordered_small () =
+      assert (fq = [x; x2; x3; x4]);
+      assert (take fq = (x4, [x; x2; x3]))
+    let test_add_take_ordered_small () =
       let x = C.generate () in
       let x2 = C.generate_lt x in
       let x3 = C.generate_lt x2 in
       let x4 = C.generate_lt x3 in
       let fq = (add x4 (add x3 (add x2 (add x empty)))) in
-      assert (fq = [x4; x3; x2; x])
-    let test_add_unordered () =
+      assert (fq = [x4; x3; x2; x]);
+      assert (take fq = (x, [x4; x3; x2]))
+    let test_add_take_unordered () =
       let x = C.generate () in
       let xn1 = C.generate_lt x in
       let xn2 = C.generate_lt xn1 in
       let x2 = C.generate_gt x in
       let x3 = C.generate_gt x2 in
       let fq = add x3 (add xn1 (add x2 (add xn2 (add x empty)))) in
-      assert (fq = [xn2; xn1; x; x2; x3])
-    (*let test_take () =
-      assert ()*)
-
+      assert (fq = [xn2; xn1; x; x2; x3]);
+      assert (take fq = (x3, [xn2; xn1; x; x2]))
 
     let run_tests () =
       test_empty ();
       test_is_empty ();
-      test_add_single ();
-      test_add_ordered_large ();
-      test_add_ordered_small ();
-      test_add_unordered ();
+      test_add_take_single ();
+      test_add_take_ordered_large ();
+      test_add_take_ordered_small ();
+      test_add_take_unordered ();
       ()
-
 
   end
 
