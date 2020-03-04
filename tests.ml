@@ -1,9 +1,11 @@
-(* 
+(*
                          CS 51 Problem Set 5
                 Modules, Functors, and Data Structures
                            Note on Testing
  *)
-
+open Orderedcoll;;
+open Prioqueue;;
+open Order;;
 (* Testing dilemma: I've implemented the `BinSTree` functor. How can I
 make sure that the invariant that `empty` is a Leaf is satisfied?  The
 following code, if uncommented, generates the error: "Error: Unbound
@@ -40,7 +42,7 @@ So, for instance, we can say: *)
 type element = IntTree.elt
 
 (* And we can say: *)
-                 
+
 let f = IntTree.delete
 
 (* But we can't say:
@@ -77,6 +79,17 @@ exposed to clients of `IntTree` and other modules that satisfy the
 following invocation:*)
 
 let _ = IntTree.run_tests () ;;
+
+module IntListQueue = (ListQueue(IntCompare) :
+                         PRIOQUEUE with type elt = IntCompare.t)
+module IntHeapQueue = (BinaryHeap(IntCompare) :
+                            PRIOQUEUE with type elt = IntCompare.t)
+module IntTreeQueue = (TreeQueue(IntCompare) :
+                         PRIOQUEUE with type elt = IntCompare.t)
+
+let _ = IntListQueue.run_tests () ;;
+let _ = IntHeapQueue.run_tests () ;;
+let _ = IntTreeQueue.run_tests () ;;
 
 (*......................................................................
 REQUIRED TESTING:

@@ -126,8 +126,6 @@ code. That way you'll be able to submit the problem set so that it
 compiles cleanly.
 ......................................................................*)
 
-(* You'll want to uncomment this before working on this section! *)
-
 module TreeQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
   struct
     exception QueueEmpty
@@ -357,8 +355,6 @@ module BinaryHeap (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
     brought down into a new node at the bottom of the tree. *This* is
     the node that we want you to return.
       ..................................................................*)
-(*TODO: navigate down the tree based on if it is even or odd -
-  then arrive at the end and return*)
     let rec get_last (t : tree) : elt * queue =
       match t with
       | Leaf el -> el, Empty
@@ -435,22 +431,18 @@ module IntListQueue = (ListQueue(IntCompare) :
 module IntHeapQueue = (BinaryHeap(IntCompare) :
                          PRIOQUEUE with type elt = IntCompare.t)
 
-(* Uncomment this once your TreeQueue implementation is complete
-
 module IntTreeQueue = (TreeQueue(IntCompare) :
                         PRIOQUEUE with type elt = IntCompare.t)
 
-*)
 
 (* Store the whole modules in these variables *)
 let list_module = (module IntListQueue :
                      PRIOQUEUE with type elt = IntCompare.t)
 let heap_module = (module IntHeapQueue :
                      PRIOQUEUE with type elt = IntCompare.t)
-(*
 let tree_module = (module IntTreeQueue :
                      PRIOQUEUE with type elt = IntCompare.t)
-*)
+
 
 (* Implementing sort using generic priority queues. *)
 let sort (m : (module PRIOQUEUE with type elt=IntCompare.t)) (lst : int list) =
@@ -475,9 +467,9 @@ let heapsort = sort heap_module ;;
    implementation is *almost* equivalent to treesort; a real treesort
    relies on self-balancing binary search trees *)
 
-(*
+
 let treesort = sort tree_module ;;
-*)
+
 
 (* Sorting with a priority queue with an underlying unordered list
    implementation is equivalent to selection sort! If your

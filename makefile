@@ -1,4 +1,4 @@
-all: orderedcoll prioqueue
+all: orderedcoll prioqueue tests
 
 orderedcoll: orderedcoll.ml
 	ocamlbuild -use-ocamlfind orderedcoll.byte
@@ -6,8 +6,8 @@ orderedcoll: orderedcoll.ml
 prioqueue: prioqueue.ml
 	ocamlbuild -use-ocamlfind prioqueue.byte
 
-# tests: tests.ml
-# 	ocamlbuild -use-ocamlfind tests.byte
+tests: tests.ml
+	ocamlbuild -use-ocamlfind tests.byte
 
 clean:
 	rm -rf _build *.byte
