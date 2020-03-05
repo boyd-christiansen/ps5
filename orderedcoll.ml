@@ -253,7 +253,13 @@ module BinSTree (C : COMPARABLE)
       let t = insert z t in
       assert (t = Branch(Branch(Leaf, [z], Leaf), [x; x],
                          Branch(Leaf, [y], Leaf)));
-      (* Can add further cases here *)
+      let a = C.generate_gt y in
+      let b = C.generate_gt a in
+      let t = insert b t in
+      let t = insert a t in
+      assert (t = Branch(Branch(Leaf, [z], Leaf), [x; x],
+              Branch(Leaf, [y], Branch(Branch (Leaf, [a], Leaf), [b], Leaf))));
+
       ()
 
     (* Insert a bunch of elements, and test to make sure that we can
@@ -292,14 +298,18 @@ module BinSTree (C : COMPARABLE)
       let x2 = C.generate_lt x in
       let x3 = C.generate_lt x2 in
       let x4 = C.generate_lt x3 in
-      assert (getmax (insert x4 (insert x3 (insert x2 (insert x empty)))) = x)
+      assert (getmax (insert x4 (insert x3 (insert x2 (insert x empty)))) = x);
+      assert (getmax (insert x (insert x2 (insert x3 (insert x4 empty)))) = x);
+      assert (getmax (insert x3 (insert x (insert x4 (insert x2 empty)))) = x)
 
     let test_getmin () =
       let x = C.generate () in
       let x2 = C.generate_gt x in
       let x3 = C.generate_gt x2 in
       let x4 = C.generate_gt x3 in
-      assert (getmin (insert x2 (insert x4 (insert x (insert x3 empty)))) = x)
+      assert (getmin (insert x2 (insert x4 (insert x (insert x3 empty)))) = x);
+      assert (getmin (insert x (insert x2 (insert x3 (insert x4 empty)))) = x);
+      assert (getmin (insert x3 (insert x (insert x4 (insert x2 empty)))) = x)
 
     let test_delete () =
       let x = C.generate () in
@@ -307,7 +317,12 @@ module BinSTree (C : COMPARABLE)
       let x3 = C.generate_lt x2 in
       let x4 = C.generate_lt x3 in
       let after_ins = insert x4 (insert x3 (insert x2 (insert x empty))) in
-      assert (delete x (delete x4 (delete x3 (delete x2 after_ins))) = empty)
+      assert (delete x (delete x4 (delete x3 (delete x2 after_ins))) = empty);
+      assert (delete x (delete x2 (delete x3 (delete x4 after_ins))) = empty);
+      assert (delete x3 (delete x (delete x4 (delete x2 after_ins))) = empty);
+      assert (delete x (delete x4 (delete x2 after_ins)) = Branch(Leaf, [x3],
+        Leaf));
+      assert (delete x (insert x (insert x empty)) = Branch(Leaf, [x], Leaf))
 
     let run_tests () =
       test_insert ();
@@ -353,7 +368,6 @@ you have done in retrospect that would have allowed you to generate as
 good a submission in less time? Please provide us your thoughts in the
 string below.
 ......................................................................*)
-(*TODO: Answer*)
 let reflection () : string =
   "Grasping some of the concepts illustrated in the pset in regards to functors \
    and modules was a little bit difficult. Good communication bewteen partners \

@@ -82,7 +82,6 @@ module ListQueue (C : COMPARABLE) : (PRIOQUEUE with type elt = C.t) =
     let is_empty (q : queue) : bool =
       q = []
 
-    (*TODO: Could we just do this with a fold?*)
     let add (e : elt) (q : queue) : queue =
       let rec accumulate (e : elt) (q : queue) (acc : queue) : queue =
         match q with
